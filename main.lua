@@ -4,7 +4,7 @@ config = {
   max_turn = math.pi/30,
   height = function() return 100 end,
   bottom = 20,
-  target_speed = 5,
+  target_speed = 3,
   min_distance = 10,
 }
 
@@ -30,7 +30,23 @@ local function make_hunter()
     y = math.random(screen_height - config.height(), screen_height - config.bottom),
     speed = config.max_speed,
     wokka_counter = 0,
-    update_position = function(self)
+    move_towards = function(self, target)
+      local angle_to_target = math.atan2(target.y - self.y, target.x - self.x)
+      local angle_diff = angle_diff(self.heading, angle_to_target)
+      
+      if math.abs(angle_diff) < config.max_turn then
+        self.heading = angle_to_target
+      elseif angle_diff < 0 then
+        self.heading = self.heading + config.max_turn
+      else
+        self.heading = self.heading - config.max_turn
+      end
+      
+      self.speed = self.speed * (1 - 0.1 * math.min(math.abs(angle_diff), config.max_turn) / config.max_turn)
+      if self.speed < config.max_speed then
+        self.speed = self.speed + config.acceleration
+      end
+      
       self.x = self.x + self.speed * math.cos(self.heading)
       self.y = self.y + self.speed * math.sin(self.heading)
     end,
@@ -97,23 +113,7 @@ function love.update(dt)
     target:move()
   end
   
-  local angle_to_target = math.atan2(target.y - hunter.y, target.x - hunter.x)
-  local angle_diff = angle_diff(hunter.heading, angle_to_target)
-  
-  if math.abs(angle_diff) < config.max_turn then
-    hunter.heading = angle_to_target
-  elseif angle_diff < 0 then
-    hunter.heading = hunter.heading + config.max_turn
-  else
-    hunter.heading = hunter.heading - config.max_turn
-  end
-  
-  hunter.speed = hunter.speed * (1 - 0.1 * math.min(math.abs(angle_diff), config.max_turn) / config.max_turn)
-  if hunter.speed < config.max_speed then
-    hunter.speed = hunter.speed + config.acceleration
-  end
-  
-  hunter:update_position()
+  hunter:move_towards(target)
 end
 
 local first = true
