@@ -1,11 +1,12 @@
 config = {
   max_speed = 10,
-  acceleration = 0.1,
+  acceleration = 0.2,
   max_turn = math.pi/30,
   height = function() return 100 end,
   bottom = 20,
-  target_speed = 3,
+  target_speed = 2,
   min_distance = 10,
+  debug = true,
 }
 
 local function distance(p1, p2)
@@ -24,7 +25,8 @@ local function angle_diff(a, b)
   end 
 end
 
-local function make_hunter()
+local function make_hunter(size)
+  local size2 = 2 * size
   return {
     x = math.random(0, screen_width),
     y = math.random(screen_height - config.height(), screen_height - config.bottom),
@@ -52,14 +54,14 @@ local function make_hunter()
     end,
     draw = function(self)
       love.graphics.setColor(255,255,255,255)
-      love.graphics.circle("fill", self.x, self.y, 10)
+      love.graphics.circle("fill", self.x, self.y, size)
       love.graphics.setColor(0,0,0,255)
       love.graphics.polygon("fill",
         self.x, self.y,
-        self.x + 20*math.cos(self.heading + 1 * math.sin(self.wokka_counter)),
-        self.y + 20*math.sin(self.heading + 1 * math.sin(self.wokka_counter)),
-        self.x + 20*math.cos(self.heading - 1 * math.sin(self.wokka_counter)),
-        self.y + 20*math.sin(self.heading - 1 * math.sin(self.wokka_counter))
+        self.x + size2*math.cos(self.heading + 1 * math.sin(self.wokka_counter)),
+        self.y + size2*math.sin(self.heading + 1 * math.sin(self.wokka_counter)),
+        self.x + size2*math.cos(self.heading - 1 * math.sin(self.wokka_counter)),
+        self.y + size2*math.sin(self.heading - 1 * math.sin(self.wokka_counter))
       )
       hunter.wokka_counter = hunter.wokka_counter + 0.3 * hunter.speed / config.max_speed
     end
@@ -70,7 +72,8 @@ local function make_target()
   return {
     x = math.random(0, screen_width),
     y = screen_height,
-    heading = math.random() * math.pi * 2,
+    dx = (math.random() - 0.5) * config.target_speed,
+    heading = -math.pi/2,
     draw = function(self)
       love.graphics.setColor(255,255,255,255)
       love.graphics.line(self.x, self.y-2, self.x, self.y+2)
@@ -82,10 +85,11 @@ local function make_target()
     reset = function(self)
       self.x = math.random(0, screen_width)
       self.y = screen_height
-      self.heading = math.atan2(screen_height/2 - self.y, screen_width/2 - self.x)
+      self.heading = -math.pi/2
+      self.dx = (math.random() - 0.5) * config.target_speed
     end,
     move = function(self)
-      self.x = self.x + math.cos(self.heading) * config.target_speed
+      self.x = self.x + math.cos(self.heading) * config.target_speed + self.dx
       self.y = self.y + math.sin(self.heading) * config.target_speed * (self.y/screen_height)
     end
   }
@@ -99,7 +103,7 @@ function love.load(arg)
   
   target = make_target()
   
-  hunter = make_hunter()
+  hunter = make_hunter(10)
   
   hunter.heading = math.atan2(target.y - hunter.y, target.x - hunter.x)
 end
@@ -121,10 +125,10 @@ function love.draw()
   love.graphics.setColor(255,255,255,255)
   hunter:draw()
   target:draw()
-  --love.graphics.circle("line", target.x, target.y, 10, 10)
-  --love.graphics.line(hunter.x, hunter.y, hunter.x+30*math.cos(hunter.heading), hunter.y+30*math.sin(hunter.heading))
-  --love.graphics.line(target.x, target.y, hunter.x, hunter.y)
-
+  if config.debug then
+    love.graphics.line(hunter.x, hunter.y, hunter.x+30*math.cos(hunter.heading), hunter.y+30*math.sin(hunter.heading))
+    love.graphics.line(target.x, target.y, hunter.x, hunter.y)
+  end
 end
 
 function love.keypressed(key, scancode, isrepeat)
