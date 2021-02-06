@@ -6,6 +6,7 @@ config = {
   bottom = 20,
   target_speed = 2,
   min_distance = 10,
+  margin_x = 0.1, -- left and right margin as a proportion of the screen
   debug = true,
 }
 
@@ -70,7 +71,7 @@ end
 
 local function make_target()
   return {
-    x = math.random(0, screen_width),
+    x = math.random(config.margin_x * screen_width, (1 - config.margin_x) * screen_width),
     y = screen_height,
     dx = (math.random() - 0.5) * config.target_speed,
     heading = -math.pi/2,
@@ -83,7 +84,7 @@ local function make_target()
       return self.x < 0 or self.x > screen_width or self.y < 0 or self.y > screen_height
     end,
     reset = function(self)
-      self.x = math.random(0, screen_width)
+      self.x = math.random(config.margin_x * screen_width, (1 - config.margin_x) * screen_width)
       self.y = screen_height
       self.heading = -math.pi/2
       self.dx = (math.random() - 0.5) * config.target_speed
