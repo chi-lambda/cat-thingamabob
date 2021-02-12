@@ -7,7 +7,8 @@ config = {
   target_speed = 2,
   min_distance = 10,
   margin_x = 0.1, -- left and right margin as a proportion of the screen
-  debug = true,
+  draw_target = false,
+  debug = false,
 }
 
 local function distance(p1, p2)
@@ -65,6 +66,9 @@ local function make_hunter(size)
         self.y + size2*math.sin(self.heading - 1 * math.sin(self.wokka_counter))
       )
       hunter.wokka_counter = hunter.wokka_counter + 0.3 * hunter.speed / config.max_speed
+    end,
+    move_cursor = function(self)
+      love.mouse.setPosition(hunter.x, hunter.y)
     end
   }
 end
@@ -76,6 +80,7 @@ local function make_target()
     dx = (math.random() - 0.5) * config.target_speed,
     heading = -math.pi/2,
     draw = function(self)
+      if not config.draw_target then return end
       love.graphics.setColor(255,255,255,255)
       love.graphics.line(self.x, self.y-2, self.x, self.y+2)
       love.graphics.line(self.x-2, self.y, self.x+2, self.y)
@@ -124,7 +129,7 @@ end
 local first = true
 function love.draw()
   love.graphics.setColor(255,255,255,255)
-  hunter:draw()
+  hunter:move_cursor()
   target:draw()
   if config.debug then
     love.graphics.line(hunter.x, hunter.y, hunter.x+30*math.cos(hunter.heading), hunter.y+30*math.sin(hunter.heading))
