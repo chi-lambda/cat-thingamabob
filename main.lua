@@ -8,12 +8,23 @@ config = {
   min_distance = 10,
   margin_x = 0.1, -- left and right margin as a proportion of the screen
   draw_target = false,
+  max_attract_speed = 20,
   debug = false,
 }
 
+local function length(vector)
+  return math.sqrt(vector.x * vector.x + vector.y * vector.y)
+end
+
 local function distance(p1, p2)
-  local x, y = p1.x - p2.x, p1.y - p1.y
-  return math.sqrt(x * x + y * y)
+  local v = {}
+  v.x, v.y = p1.x - p2.x, p1.y - p1.y
+  return length({ x = p1.x - p2.x, y = p1.y - p1.y })
+end
+
+local function normalize(vector)
+  local l = length(vector)
+  return { x = vector.x / l, y = vector.y / l }
 end
 
 local function angle_diff(a, b)
@@ -69,6 +80,16 @@ local function make_hunter(size)
     end,
     move_cursor = function(self)
       love.mouse.setPosition(hunter.x, hunter.y)
+    end,
+    attract_cursor = function(self)
+      local cursor = {}
+      cursor.x, cursor.y = love.mouse.getPosition()
+      local vector_to_hunter = { x = hunter.x - cursor.x, y = hunter.y - cursor.y }
+      local distance_to_hunter = length(vector_to_hunter)
+      local speed = math.min(distance_to_hunter/10, config.max_attract_speed)
+      local norm_vector = normalize(vector_to_hunter)
+      cursor.x, cursor.y = cursor.x + norm_vector.x * speed, cursor.y + norm_vector.y * speed
+      love.mouse.setPosition(cursor.x, cursor.y)
     end
   }
 end
@@ -126,10 +147,9 @@ function love.update(dt)
   hunter:move_towards(target)
 end
 
-local first = true
 function love.draw()
   love.graphics.setColor(255,255,255,255)
-  hunter:move_cursor()
+  hunter:attract_cursor()
   target:draw()
   if config.debug then
     love.graphics.line(hunter.x, hunter.y, hunter.x+30*math.cos(hunter.heading), hunter.y+30*math.sin(hunter.heading))
