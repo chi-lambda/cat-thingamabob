@@ -4,10 +4,10 @@ config = {
   max_turn = math.pi/30,
   height = function() return 100 end,
   bottom = 20,
-  target_speed = 2,
+  target_speed = 1,
   min_distance = 10,
   margin_x = 0.1, -- left and right margin as a proportion of the screen
-  draw_target = false,
+  draw_target = true,
   max_attract_speed = 20,
   debug = false,
 }
@@ -149,11 +149,14 @@ end
 
 function love.draw()
   love.graphics.setColor(255,255,255,255)
-  hunter:attract_cursor()
+  hunter:draw()
   target:draw()
   if config.debug then
+    love.graphics.setColor(128,128,128,255)
     love.graphics.line(hunter.x, hunter.y, hunter.x+30*math.cos(hunter.heading), hunter.y+30*math.sin(hunter.heading))
     love.graphics.line(target.x, target.y, hunter.x, hunter.y)
+    local cursor_x, cursor_y = love.mouse.getPosition()
+    love.graphics.line(hunter.x, hunter.y, cursor_x, cursor_y)
   end
 end
 
