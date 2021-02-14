@@ -9,6 +9,8 @@ config = {
   margin_x = 0.1, -- left and right margin as a proportion of the screen
   draw_target = true,
   max_attract_speed = 20,
+  growth_rate = 2,
+  shrink_rate = 0.99,
   debug = false,
 }
 
@@ -38,8 +40,8 @@ local function angle_diff(a, b)
   end 
 end
 
-local function make_hunter(size)
-  local size2 = 2 * size
+local function make_hunter(initial_size)
+  local size = initial_size
   return {
     x = math.random(0, screen_width),
     y = math.random(screen_height - config.height(), screen_height - config.bottom),
@@ -66,6 +68,7 @@ local function make_hunter(size)
       self.y = self.y + self.speed * math.sin(self.heading)
     end,
     draw = function(self)
+      local size2 = 2 * size
       love.graphics.setColor(255,255,255,255)
       love.graphics.circle("fill", self.x, self.y, size)
       love.graphics.setColor(0,0,0,255)
@@ -90,6 +93,14 @@ local function make_hunter(size)
       local norm_vector = normalize(vector_to_hunter)
       cursor.x, cursor.y = cursor.x + norm_vector.x * speed, cursor.y + norm_vector.y * speed
       love.mouse.setPosition(cursor.x, cursor.y)
+    end,
+    eats = function(self, target)
+      if distance(target, self) < size * 1.5 then
+        size = math.min(initial_size * 3, size * config.growth_rate)
+        return true
+      else
+        size = math.max(initial_size / 2, size * config.shrink_rate)
+      end
     end
   }
 end
@@ -136,8 +147,8 @@ function love.load(arg)
 end
 
 function love.update(dt)
-  if distance(target, hunter) < config.min_distance or target:is_out_of_bounds() then
-    while distance(target, hunter) < config.min_distance do
+  if hunter:eats(target) or target:is_out_of_bounds() then
+    while hunter:eats(target) do
       target:reset()
     end
   else
