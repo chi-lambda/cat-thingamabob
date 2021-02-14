@@ -106,11 +106,11 @@ local function make_hunter(initial_size)
 end
 
 local function make_target()
+  local dx = (math.random() - 0.5) * config.target_speed
+  local heading = -math.pi/2
   return {
     x = math.random(config.margin_x * screen_width, (1 - config.margin_x) * screen_width),
     y = screen_height,
-    dx = (math.random() - 0.5) * config.target_speed,
-    heading = -math.pi/2,
     draw = function(self)
       if not config.draw_target then return end
       love.graphics.setColor(255,255,255,255)
@@ -123,12 +123,12 @@ local function make_target()
     reset = function(self)
       self.x = math.random(config.margin_x * screen_width, (1 - config.margin_x) * screen_width)
       self.y = screen_height
-      self.heading = -math.pi/2
-      self.dx = (math.random() - 0.5) * config.target_speed
+      heading = -math.pi/2
+      dx = (math.random() - 0.5) * config.target_speed
     end,
     move = function(self)
-      self.x = self.x + math.cos(self.heading) * config.target_speed + self.dx
-      self.y = self.y + math.sin(self.heading) * config.target_speed * (self.y/screen_height)
+      self.x = self.x + math.cos(heading) * config.target_speed + dx
+      self.y = self.y + math.sin(heading) * config.target_speed * (self.y/screen_height)
     end
   }
 end
