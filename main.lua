@@ -42,11 +42,11 @@ end
 
 local function make_hunter(initial_size)
   local size = initial_size
+  local speed = config.max_speed
+  local wokka_counter = 0
   return {
     x = math.random(0, screen_width),
     y = math.random(screen_height - config.height(), screen_height - config.bottom),
-    speed = config.max_speed,
-    wokka_counter = 0,
     move_towards = function(self, target)
       local angle_to_target = math.atan2(target.y - self.y, target.x - self.x)
       local angle_diff = angle_diff(self.heading, angle_to_target)
@@ -59,13 +59,13 @@ local function make_hunter(initial_size)
         self.heading = self.heading - config.max_turn
       end
       
-      self.speed = self.speed * (1 - 0.1 * math.min(math.abs(angle_diff), config.max_turn) / config.max_turn)
-      if self.speed < config.max_speed then
-        self.speed = self.speed + config.acceleration
+      speed = speed * (1 - 0.1 * math.min(math.abs(angle_diff), config.max_turn) / config.max_turn)
+      if speed < config.max_speed then
+        speed = speed + config.acceleration
       end
       
-      self.x = self.x + self.speed * math.cos(self.heading)
-      self.y = self.y + self.speed * math.sin(self.heading)
+      self.x = self.x + speed * math.cos(self.heading)
+      self.y = self.y + speed * math.sin(self.heading)
     end,
     draw = function(self)
       local size2 = 2 * size
@@ -160,7 +160,7 @@ end
 
 function love.draw()
   love.graphics.setColor(255,255,255,255)
-  hunter:draw()
+  hunter:attract_cursor()
   target:draw()
   if config.debug then
     love.graphics.setColor(128,128,128,255)
